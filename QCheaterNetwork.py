@@ -33,13 +33,13 @@ class QCheaterNetwork(QNetwork):
     ####################### WATCH OUT: ILLEGAL OVERRIDE (?) #######################
     def forward(self, state: CompleteState | torch.Tensor) -> torch.Tensor: # type: ignore
         """
-        Esegue il passaggio in avanti (forward pass) della rete neurale.
-        Accetta sia un oggetto di classe CompleteState (singolo) sia un torch.Tensor (già convertito o in batch).
+        It runs the forward pass of the neural network.
+        It accepts either a CompleteState object (single) or a torch.Tensor (already converted or in batch).
         
         Args:
-            state: Oggetto CompleteState oppure torch.Tensor di shape (batch_size, input_dim)
+            state: CompleteState object or torch.Tensor of shape (batch_size, input_dim)
         Returns:
-            q_values: Tensore di shape (batch_size, num_actions)
+            q_values: Tensor of shape (batch_size, num_actions)
         """
         # 1. Se riceve un oggetto CompleteState, lo trasforma in tensore PyTorch
         if isinstance(state, CompleteState):

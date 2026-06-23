@@ -15,6 +15,11 @@ from QCheaterNetwork import QCheaterNetwork
 
 
 class DQNCheater(DQNPlayer_HandBitmap):
+    """
+        Class used for the implementation of the agents in the 4th experiment.
+        The Cheater agent extends the DQNPlayer_HandBitmap class by adding a bitarray to track the cards played in the current round.
+        (it is the cheater since it can see the cards played by other players in the current round).
+    """
     def __init__(self, player_id: int, total_cards: int, cards_per_player: int, 
                  discount_factor: float = 0.99, epsilon_decay: float = 0.995, 
                  replay_buffer_capacity: int = 10000, batch_size: int = 32,

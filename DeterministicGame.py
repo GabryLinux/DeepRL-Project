@@ -14,6 +14,11 @@ from Player import Player
 from gymnasium import spaces
 
 class DeterministicGame(GameEnv):
+    """
+        Class used in the implementation of the environment in the 4th experiment.
+        It extends the Game class by disabling the changing of the playing order and
+        by changing the state representation to include the cards played in the current round.
+    """
     def __init__(self, deck: Deck):
         super().__init__(deck)
         self.deck = deck
@@ -22,14 +27,10 @@ class DeterministicGame(GameEnv):
         self.played_cards_in_round: OrderedDict[Player, bitarray] = OrderedDict()
 
 
-    """
-    A deterministic game where the outcome is determined by the actions taken by the players.
-    """
+
     def set_next_first_player(self, scores: OrderedDict[Player, int]):
         """
-        Set the next first player based on the scores of the current round.
-        The player with the highest score becomes the first player in the next round.
-        In case of a tie, the player with the lowest ID among those tied becomes the first player.
+        It doesn't change the position of players.
         """
         return
     
@@ -39,7 +40,7 @@ class DeterministicGame(GameEnv):
         num_cards = self.deck.num_cards
         self.observation_space = spaces.Dict(
             {
-                # La mano del giocatore: un vettore di 7 byte (valori da 0 a 255)
+                # Hand of the player: 1 float per every card in the deck, 0.0 or 1.0
                 "hand": spaces.Box(
                     low=0, 
                     high=1, 
@@ -47,14 +48,14 @@ class DeterministicGame(GameEnv):
                     dtype=np.uint8
                 ),
                 
-                # Lo storico delle carte giocate nella partita: altri 7 byte
+                # Cards history: 1 float per every card in the deck, 0.0 or 1.0
                 "played_history": spaces.Box(
                     low=0, 
                     high=1, 
                     shape=(num_cards,), 
                     dtype=np.uint8
                 ),
-                # Le carte giocate nel round corrente: altri 7 byte
+                # Cards played in the current round: 1 float per every card in the deck, 0.0 or 1.0
                 "played_cards_in_round": spaces.Box(
                     low=0, 
                     high=1, 

@@ -9,6 +9,10 @@ from Player import Player
 
 
 class RandomPlayer(Player):
+    """
+        Implementation of the RandomPlayer class, which extends the Player class.
+        It always plays a random card from its hand, without any strategy or learning.
+    """
     def __init__(self, player_id: int, total_cards: int):
         super().__init__(player_id)
         self.total_cards = total_cards
@@ -16,7 +20,7 @@ class RandomPlayer(Player):
         self._hand.setall(0)  # Initialize all cards in hand as not present
 
     def play_cards(self):
-        """Play a random card from the player's hand."""
+        """Play a random card from the player's hand and update the player's state."""
         random_played_cards = self._random_play(self._hand)
         self._hand &= ~random_played_cards  # Remove the played cards from the player's hand
         return random_played_cards

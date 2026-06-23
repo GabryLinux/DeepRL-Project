@@ -83,36 +83,31 @@ class Player(ABC):
     @staticmethod
     def _random_play(available_cards_bitarray: bitarray) -> bitarray:
         """
-        Seleziona un sottoinsieme casuale non vuoto di carte rappresentate come bitmap.
-        Garantisce in modo assoluto che non vengano selezionate carte non presenti nella mano.
+        Randomly selects a combination of cards to play from the available cards in hand.
+        The selection is made by randomly choosing a number of cards to play (at least one)
+        and then randomly selecting that many cards from the available ones.
         
         Args:
-            available_cards_bitarray: bitarray rappresentante le carte attualmente disponibili in mano
+            available_cards_bitarray: A bitarray representing the cards available in the player's hand (1 for available, 0 for not available).
             
         Returns:
-            Un bitarray della stessa dimensione con la combinazione di carte scelta per essere giocata
+            A bitarray representing the cards chosen to play (1 for played, 0 for not played).
         """
         num_cards = len(available_cards_bitarray)
         
-        # 1. Troviamo gli indici delle sole carte effettivamente disponibili (con bit impostato a True/1)
         available_indices = [i for i, bit in enumerate(available_cards_bitarray) if bit]
         num_available = len(available_indices)
         
-        # 2. Prepariamo un bitarray vuoto (tutti zeri) della stessa dimensione dell'input
         played_cards = bitarray(num_cards)
         played_cards.setall(0)
         
-        # Se non ci sono carte disponibili, restituiamo la bitmap vuota
         if num_available == 0:
             return played_cards
             
-        # 3. Scegliamo casualmente quante carte giocare (da un minimo di 1 a un massimo di tutte quelle disponibili)
         num_to_play = np.random.randint(1, num_available + 1)
         
-        # 4. Scegliamo in modo casuale e senza ripetizioni gli indici tra quelli realmente disponibili
         chosen_indices = np.random.choice(available_indices, size=num_to_play, replace=False)
         
-        # 5. Attiviamo i bit corrispondenti alle carte scelte nella bitmap di output
         for idx in chosen_indices:
             played_cards[idx] = True
         

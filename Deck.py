@@ -49,6 +49,9 @@ class Deck:
         shuffle(self.cards)
 
 class DeckHelper:
+    """
+    A helper class for the Deck class to provide additional functionalities.
+    """
     @staticmethod
     def is_joker(deck, card):
         """

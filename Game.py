@@ -13,6 +13,10 @@ import gymnasium as gym
 from gymnasium import spaces
 
 class GameEnv(gym.Env):
+    """
+        Implementation of the game environment for the 1st, 2nd and 3rd experiments.
+        It extends the gym.Env class by implementing the methods required by the Gym API.
+    """
     def __init__(self, deck: Deck):
         """Initialize the game with a deck of cards and an empty list of players."""
         self.deck = deck
@@ -22,7 +26,7 @@ class GameEnv(gym.Env):
         
 
     def add_player(self, player: Player):
-        """Add a player to the game if the maximum number of players has not been reached."""
+        """Add a player to the game"""
         self.players.append(player)
 
     def reset(
@@ -31,15 +35,13 @@ class GameEnv(gym.Env):
         seed: Optional[int] = None,
         options: Optional[dict[str, Any]] = None,
     ) -> tuple[np.ndarray, dict[str, Any]]:
-        """Reset del gioco."""
+        """Resets the game by resetting all the players and shuffling the deck and dealing cards to players. Returns the initial observation and info."""
         super().reset(seed=seed)
         
-        # Reset stato
         for player in self.players:
             player.reset()
         self.deck.reset_deck()
         
-        # Costruisci l'osservazione iniziale
         observation: np.ndarray = np.array([])
         
         info = {}
@@ -102,7 +104,7 @@ class GameEnv(gym.Env):
         max_cards_before = self.deck.num_cards - cards_per_player
         self.observation_space = spaces.Dict(
             {
-                # La mano del giocatore: un vettore di 7 byte (valori da 0 a 255)
+                # Hand of the player: 1 float per every card in the deck, 0.0 or 1.0
                 "hand": spaces.Box(
                     low=0, 
                     high=1, 
@@ -110,7 +112,7 @@ class GameEnv(gym.Env):
                     dtype=np.uint8
                 ),
                 
-                # Lo storico delle carte giocate nella partita: altri 7 byte
+                # Cards history: 1 float per every card in the deck, 0.0 or 1.0
                 "played_history": spaces.Box(
                     low=0, 
                     high=1, 
@@ -118,7 +120,7 @@ class GameEnv(gym.Env):
                     dtype=np.uint8
                 ),
                 
-                # Quante carte sono già state piazzate sul tavolo in questo round (da 0 a 54)
+                # Number of cards placed by the player in the current round: 1 int
                 "cards_placed": spaces.Discrete(max_cards_before + 1)
             }
         )
@@ -140,7 +142,7 @@ class GameEnv(gym.Env):
                 print(f"Player {player.get_id()} made an illegal move:\n")
                 print(f"Player's hand: {self.old_hands[player]}\n")
                 print(f"Played cards: {actions[player]}\n")
-                rewards[player] = -1  # Penalizza il giocatore per la mossa illegale
+                rewards[player] = -1  # Penalize illegal move with a negative reward
                 illegal_move_detected = True
 
         # HAND UPDATE PHASE: Update the players' hands after the round, regardless of whether there was an illegal move or not.
@@ -187,35 +189,35 @@ class GameEnv(gym.Env):
         """
         rewards_per_player = self.compute_rewards_for_suit_for_player(played_cards_in_round)
         
-        # Inizializza i premi totali per ogni seme
+        # Initializes the total rewards for each suit across all players
         rewards_per_suit = [0 for _ in range(self.deck.suits)]
         for player in self.players:
             for suit in range(self.deck.suits):
                 rewards_per_suit[suit] += rewards_per_player[player][suit]
         
-        # CORREZIONE BUG 1: Trova il seme vincente. In caso di pareggio, prende l'indice PIÙ ALTO
+        # Determine the winning suit based on the total rewards for each suit
         winning_suit = max(range(len(rewards_per_suit)), key=lambda i: (rewards_per_suit[i], i))
-        print(f"Winning suit: {winning_suit} with reward {rewards_per_suit[winning_suit]}")  # Debug: Print the winning suit and its reward
+        print(f"Winning suit: {winning_suit} with reward {rewards_per_suit[winning_suit]}") 
 
         final_rewards: OrderedDict[Player, int] = OrderedDict()
         for player in self.players:
-            # Assegna al giocatore i punti che ha effettivamente puntato sul seme vincente
+            # Compute the reward for each player based on the winning suit
             final_rewards[player] = rewards_per_player[player][winning_suit]
         print(f"Rewards per player per suit: {[f'{player.get_id()}: {rewards}' for player, rewards in rewards_per_player.items()]}")  # Debug: Print rewards per player per suit
-        # Gestione Joker
+
+        # Joker check: If any player has played the joker, they will be rewarded with the winning suit's reward.
         joker_players = self.joker_players(played_cards_in_round)
         if joker_players:
             print(f"Joker players: {[player.get_id() for player in joker_players]}")
             
-            # Il "Montepremi" totale della suit vincente generato da tutti i giocatori
             total_winning_pool = sum(final_rewards[p] for p in self.players)
             shared_reward = total_winning_pool // len(joker_players)
             
             for player in self.players:
                 if player in joker_players:
-                    final_rewards[player] = shared_reward
+                    final_rewards[player] = shared_reward # Reward joker players with the shared reward
                 else:
-                    final_rewards[player] = 0  # Chi non ha il joker viene azzerato (i punti vanno al Joker)
+                    final_rewards[player] = 0 # Penalize non-joker players by setting their reward to 0 if any player played the joker
 
         return final_rewards
 

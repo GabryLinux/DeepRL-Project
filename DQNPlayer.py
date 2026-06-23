@@ -20,7 +20,8 @@ class DQNPlayer(Player):
     def __init__(
             self, player_id: int, total_cards: int, cards_per_player: int, 
             discount_factor: float = 0.99, epsilon_decay: float = 0.995, replay_buffer_capacity: int = 10000, batch_size: int = 32,
-            SYNC_TARGET_EVERY: int = 10
+            SYNC_TARGET_EVERY: int = 10,
+            disable_network_building: bool = False  # New parameter to control network building
         ):
         super().__init__(player_id)
 
@@ -40,8 +41,11 @@ class DQNPlayer(Player):
         self.num_cards_played = 0
 
         # -------- Learning Parameters --------
-        self.policy_network = QNetwork.QNetwork(num_cards=total_cards, num_actions=(1)) #QNetwork.QNetwork(num_cards=total_cards, num_actions=(2**self.total_cards - 1))  # Initialize the Q-network
-        self.target_network = QNetwork.QNetwork(num_cards=total_cards, num_actions=(1)) #QNetwork.QNetwork(num_cards=total_cards, num_actions=(2**self.total_cards - 1))  # Initialize the target network
+        # REMEMBER TO DISABLE THE POLICY AND TARGET NETWORK BUILDING WHEN INHERITING FROM THIS CLASS (like DQNPlayer_HandBitmap and DQNCheater)
+        
+        if not disable_network_building:
+            self.policy_network = QNetwork.QNetwork(num_cards=total_cards, num_actions=(2**total_cards)) #QNetwork.QNetwork(num_cards=total_cards, num_actions=(2**self.total_cards - 1))  # Initialize the Q-network
+            self.target_network = QNetwork.QNetwork(num_cards=total_cards, num_actions=(2**total_cards)) #QNetwork.QNetwork(num_cards=total_cards, num_actions=(2**self.total_cards - 1))  # Initialize the target network
         self.epsilon = 1.0  # Exploration rate
         self.epsilon_decay = epsilon_decay  # Decay rate for exploration
         self.replay_buffer = ReplayBuffer(capacity=replay_buffer_capacity)  # Experience replay buffer
